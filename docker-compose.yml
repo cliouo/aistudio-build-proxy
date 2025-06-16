@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  camoufox:
+    image: python:3.11-slim
+    command: ["/bin/bash", "/app/scripts/start_camoufox.sh"]
+    volumes:
+      - .:/app
+    working_dir: /app
+    shm_size: "2gb"
+    environment:
+      - CFX_PORT=38835
+      - USE_XVFB=true
+  server:
+    build: .
+    depends_on:
+      - camoufox
+    environment:
+      - CAMOUFOX_WS=ws://camoufox:38835
+      - STORAGE_STATE=/data/google.json
+      - FRONTEND_URL=https://example.com/after-login
+      - AUTH_TOKEN=valid-token-user-1
+    ports:
+      - "5345:5345"

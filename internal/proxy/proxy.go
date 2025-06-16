@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"context"
@@ -163,7 +163,7 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-func handleWebSocket(w http.ResponseWriter, r *http.Request) {
+func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	// 认证
 	authToken := r.URL.Query().Get("auth_token")
 	userID, err := validateJWT(authToken)
@@ -191,12 +191,12 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 func readPump(uc *UserConnection) {
 	defer func() {
 		globalPool.RemoveConnection(uc.UserID, uc.Conn)
-		uc.Conn.Close()
+		_ = uc.Conn.Close()
 		log.Printf("readPump closed for user %s", uc.UserID)
 	}()
 
 	// 设置读取超时 (心跳机制)
-	uc.Conn.SetReadDeadline(time.Now().Add(wsReadTimeout))
+	_ = uc.Conn.SetReadDeadline(time.Now().Add(wsReadTimeout))
 
 	for {
 		_, message, err := uc.Conn.ReadMessage()
@@ -211,7 +211,7 @@ func readPump(uc *UserConnection) {
 		}
 
 		// 收到任何消息，重置读取超时
-		uc.Conn.SetReadDeadline(time.Now().Add(wsReadTimeout))
+		_ = uc.Conn.SetReadDeadline(time.Now().Add(wsReadTimeout))
 		uc.LastActive = time.Now()
 
 		// 解析消息
@@ -250,7 +250,7 @@ func readPump(uc *UserConnection) {
 
 // --- 4. HTTP 反向代理与 WS 隧道 ---
 
-func handleProxyRequest(w http.ResponseWriter, r *http.Request) {
+func HandleProxyRequest(w http.ResponseWriter, r *http.Request) {
 	// 1. 认证并获取UserID (这里模拟)
 	userID, err := authenticateHTTPRequest(r)
 	if err != nil {
@@ -281,7 +281,7 @@ func handleProxyRequest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to read request body", http.StatusInternalServerError)
 		return
 	}
-	defer r.Body.Close()
+	defer func() { _ = r.Body.Close() }()
 
 	// 注意：将Header直接序列化为JSON可能需要一些处理，这里简化处理
 	// 对于生产环境，可能需要更精细的Header转换
@@ -469,7 +469,7 @@ func writeBody(w http.ResponseWriter, payload map[string]interface{}) {
 	// 注意：如果前端发送的是二进制数据，这里应该假设它是base64编码的字符串并进行解码
 
 	if len(bodyData) > 0 {
-		w.Write(bodyData)
+		_, _ = w.Write(bodyData)
 	}
 }
 
@@ -504,20 +504,12 @@ func authenticateHTTPRequest(r *http.Request) (string, error) {
 	return "user-1", nil
 }
 
-// --- 主函数 ---
-
-func main() {
-	// WebSocket 路由
-	http.HandleFunc(wsPath, handleWebSocket)
-
-	// HTTP 反向代理路由 (捕获所有其他请求)
-	http.HandleFunc("/", handleProxyRequest)
-
-	log.Printf("Starting server on %s", proxyListenAddr)
-	log.Printf("WebSocket endpoint available at ws://%s%s", proxyListenAddr, wsPath)
-	log.Printf("HTTP proxy available at http://%s/", proxyListenAddr)
-
-	if err := http.ListenAndServe(proxyListenAddr, nil); err != nil {
-		log.Fatalf("Could not start server: %s\n", err)
-	}
+// Start starts the HTTP server with default routes.
+func Start(addr string) error {
+	http.HandleFunc(wsPath, HandleWebSocket)
+	http.HandleFunc("/", HandleProxyRequest)
+	log.Printf("Starting server on %s", addr)
+	log.Printf("WebSocket endpoint available at ws://%s%s", addr, wsPath)
+	log.Printf("HTTP proxy available at http://%s/", addr)
+	return http.ListenAndServe(addr, nil)
 }
