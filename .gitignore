@@ -1,22 +1,36 @@
 # Go 编译产物
-*.exe                 # Windows 可执行文件
-*.dll                 # Windows 动态链接库
-*.so                  # Linux/macOS 共享库
-*.dylib               # macOS 动态库
-*.test                # Go 测试缓存
-*.prof                # Go 性能分析文件
+## Windows 可执行文件
+*.exe
+## Windows 动态链接库
+*.dll
+## Linux/macOS 共享库
+*.so
+## macOS 动态库
+*.dylib
+## Go 测试缓存
+*.test
+## Go 性能分析文件
+*.prof
 
 # Go 模块相关
-go.sum                # 模块校验和文件（如果团队共享，可以考虑不忽略）
-vendor/               # Go 模块的本地副本（如果团队共享，可以考虑不忽略）
+## 模块校验和文件（如果团队共享，可以考虑不忽略）
+go.sum
+## Go 模块的本地副本（如果团队共享，可以考虑不忽略）
+vendor/
 
 # GoLand IDE 特定文件
-.idea/                # GoLand 项目配置目录
-*.iml                 # GoLand 模块文件
-*.ipr                 # GoLand 项目文件
-*.iws                 # GoLand 工作区文件
-out/                  # 编译输出目录，GoLand 可能会生成
-.DS_Store             # macOS 隐藏文件
+## GoLand 项目配置目录
+.idea/
+## GoLand 模块文件
+*.iml
+## GoLand 项目文件
+*.ipr
+## GoLand 工作区文件
+*.iws
+## 编译输出目录，GoLand 可能会生成
+out/
+## macOS 隐藏文件
+.DS_Store
 
 # 依赖管理工具
 # 如果使用 vendoring，则 vendor/ 目录通常需要被版本控制。
@@ -26,10 +40,14 @@ out/                  # 编译输出目录，GoLand 可能会生成
 # vendor/
 
 # 编译和运行时文件
-bin/                  # 编译后的可执行文件目录
-pkg/                  # 编译后的包文件目录（Go 1.10 之前常见，现在多在 go build 时直接生成）
-*.log                 # 日志文件
-tmp/                  # 临时文件
+## 编译后的可执行文件目录
+bin/
+# 编译后的包文件目录（Go 1.10 之前常见，现在多在 go build 时直接生成）
+pkg/
+# 日志文件
+*.log
+# 临时文件
+tmp/
 
 # 包管理工具（如果使用其他）
 # dep
@@ -40,17 +58,27 @@ Gopkg.toml
 glide.lock
 
 # 其他常见文件
-.env                  # 环境变量文件
-.env.*                # 其他环境变量文件
-*.pem                 # 私钥文件
-*.key                 # 密钥文件
-*.crt                 # 证书文件
-*.jks                 # Java KeyStore (有时会出现在Go项目中，比如某些Java-Go互操作)
-*.p12                 # PKCS#12 (有时会出现在Go项目中)
-*.keystore            # 密钥存储
-node_modules/         # 如果你的Go项目也包含前端代码
-coverage.out          # Go 测试覆盖率文件
-profile.pprof         # Go CPU/Memory 性能分析文件
+## 环境变量文件
+.env
+.env.*
+## 私钥文件
+*.pem
+## 密钥文件
+*.key
+## 证书文件
+*.crt
+## Java KeyStore (有时会出现在Go项目中，比如某些Java-Go互操作)
+*.jks
+## PKCS#12 (有时会出现在Go项目中)
+*.p12
+## 密钥存储
+*.keystore
+## 如果你的Go项目也包含前端代码
+node_modules/
+## Go 测试覆盖率文件
+coverage.out
+## Go CPU/Memory 性能分析文件
+profile.pprof
 
 # macOS 特定
 .DS_Store
