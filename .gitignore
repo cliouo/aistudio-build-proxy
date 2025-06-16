@@ -85,3 +85,6 @@ profile.pprof
 
 # Windows 特定
 Thumbs.db
+
+# Roo Code模式
+.roomodes
