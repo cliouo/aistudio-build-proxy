@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"context"
@@ -506,18 +506,15 @@ func authenticateHTTPRequest(r *http.Request) (string, error) {
 
 // --- 主函数 ---
 
-func main() {
-	// WebSocket 路由
-	http.HandleFunc(wsPath, handleWebSocket)
-
-	// HTTP 反向代理路由 (捕获所有其他请求)
-	http.HandleFunc("/", handleProxyRequest)
-
-	log.Printf("Starting server on %s", proxyListenAddr)
-	log.Printf("WebSocket endpoint available at ws://%s%s", proxyListenAddr, wsPath)
-	log.Printf("HTTP proxy available at http://%s/", proxyListenAddr)
-
-	if err := http.ListenAndServe(proxyListenAddr, nil); err != nil {
-		log.Fatalf("Could not start server: %s\n", err)
+// Start launches the HTTP server for proxy and WebSocket gateway.
+func Start(addr string) error {
+	if addr == "" {
+		addr = proxyListenAddr
 	}
+	http.HandleFunc(wsPath, handleWebSocket)
+	http.HandleFunc("/", handleProxyRequest)
+	log.Printf("Starting server on %s", addr)
+	log.Printf("WebSocket endpoint available at ws://%s%s", addr, wsPath)
+	log.Printf("HTTP proxy available at http://%s/", addr)
+	return http.ListenAndServe(addr, nil)
 }
