@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"context"
@@ -163,7 +163,9 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-func handleWebSocket(w http.ResponseWriter, r *http.Request) {
+// HandleWebSocket upgrades the HTTP connection to WebSocket and registers it
+// in the global connection pool.
+func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	// 认证
 	authToken := r.URL.Query().Get("auth_token")
 	userID, err := validateJWT(authToken)
@@ -250,7 +252,9 @@ func readPump(uc *UserConnection) {
 
 // --- 4. HTTP 反向代理与 WS 隧道 ---
 
-func handleProxyRequest(w http.ResponseWriter, r *http.Request) {
+// HandleProxyRequest handles all HTTP requests and forwards them to the
+// corresponding WebSocket client.
+func HandleProxyRequest(w http.ResponseWriter, r *http.Request) {
 	// 1. 认证并获取UserID (这里模拟)
 	userID, err := authenticateHTTPRequest(r)
 	if err != nil {
@@ -506,18 +510,14 @@ func authenticateHTTPRequest(r *http.Request) (string, error) {
 
 // --- 主函数 ---
 
-func main() {
-	// WebSocket 路由
-	http.HandleFunc(wsPath, handleWebSocket)
+// Start runs the HTTP server on the given address.
+func Start(addr string) error {
+	http.HandleFunc(wsPath, HandleWebSocket)
+	http.HandleFunc("/", HandleProxyRequest)
 
-	// HTTP 反向代理路由 (捕获所有其他请求)
-	http.HandleFunc("/", handleProxyRequest)
+	log.Printf("Starting server on %s", addr)
+	log.Printf("WebSocket endpoint available at ws://%s%s", addr, wsPath)
+	log.Printf("HTTP proxy available at http://%s/", addr)
 
-	log.Printf("Starting server on %s", proxyListenAddr)
-	log.Printf("WebSocket endpoint available at ws://%s%s", proxyListenAddr, wsPath)
-	log.Printf("HTTP proxy available at http://%s/", proxyListenAddr)
-
-	if err := http.ListenAndServe(proxyListenAddr, nil); err != nil {
-		log.Fatalf("Could not start server: %s\n", err)
-	}
+	return http.ListenAndServe(addr, nil)
 }
