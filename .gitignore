@@ -85,3 +85,4 @@ profile.pprof
 
 # Windows 特定
 Thumbs.db
+python/__pycache__/

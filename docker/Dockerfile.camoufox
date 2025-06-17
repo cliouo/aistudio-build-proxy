@@ -1,0 +1,21 @@
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      xvfb libgtk-3-0 libdbus-glib-1-2 libasound2 \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY python/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt && camoufox fetch
+
+COPY python/runner.py ./runner.py
+COPY scripts/docker-entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENV COOKIE_FILE=/data/cookie.json
+ENV TARGET_URL=""
+ENV HTTP_PROXY=""
+ENV HEADLESS=true
+
+VOLUME ["/data"]
+ENTRYPOINT ["/entrypoint.sh"]
