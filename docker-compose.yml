@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+  camoufox:
+    image: camoufox-runner
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.camoufox
+    environment:
+      - TARGET_URL=${TARGET_URL}
+      - COOKIE_FILE=/data/cookie.json
+      - HTTP_PROXY=${HTTP_PROXY-}
+      - HEADLESS=true
+    volumes:
+      - ./data:/data
+    shm_size: "2gb"
+
+  server:
+    build: .
+    depends_on:
+      - camoufox
+    environment:
+      - AUTH_TOKEN=${AUTH_TOKEN}
+      - PORT=5345
+    ports:
+      - "5345:5345"
